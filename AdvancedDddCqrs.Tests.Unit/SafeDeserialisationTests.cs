@@ -1,4 +1,5 @@
 using System;
+
 using NUnit.Framework;
 
 namespace AdvancedDddCqrs.Tests.Unit
@@ -22,7 +23,7 @@ namespace AdvancedDddCqrs.Tests.Unit
                     Quantity = 1
                 });
 
-            var json = serialiser.Serialise<Order, OrderMemento>(order);
+            string json = serialiser.Serialise<Order, OrderMemento>(order);
 
             Assert.That(json, Is.EqualTo(GetJson()));
         }
@@ -31,7 +32,7 @@ namespace AdvancedDddCqrs.Tests.Unit
         public void Deserialisation_ShouldNotReturnNull()
         {
             var serialiser = new Serialiser();
-            var json = GetJson();
+            string json = GetJson();
             var memento = serialiser.Deserialise<OrderMemento>(json);
             var order = new Order(memento);
 
@@ -43,11 +44,11 @@ namespace AdvancedDddCqrs.Tests.Unit
         public void RoundTripWithExtendedData()
         {
             var serialiser = new Serialiser();
-            var initialJson = GetExtendedJson();
+            string initialJson = GetExtendedJson();
             var memento = serialiser.Deserialise<OrderMemento>(initialJson);
             var order = new Order(memento);
 
-            var newJson = serialiser.Serialise(order.GetMemento());
+            string newJson = serialiser.Serialise(order.GetMemento());
 
             Assert.That(newJson, Is.EqualTo(initialJson));
         }

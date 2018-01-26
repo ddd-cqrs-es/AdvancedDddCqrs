@@ -9,16 +9,20 @@ namespace AdvancedDddCqrs
 
         public RoundRobinDispatcher(IEnumerable<IOrderHandler> handlers)
         {
-            if (handlers == null) throw new ArgumentNullException("handlers");
-            foreach (var orderHandler in handlers)
+            if (handlers == null)
+            {
+                throw new ArgumentNullException("handlers");
+            }
+
+            foreach (IOrderHandler orderHandler in handlers)
             {
                 _handlers.Enqueue(orderHandler);
-            }    
+            }
         }
 
         public bool Handle(Order order)
         {
-            var handler = _handlers.Dequeue();
+            IOrderHandler handler = _handlers.Dequeue();
             handler.Handle(order);
             _handlers.Enqueue(handler);
 

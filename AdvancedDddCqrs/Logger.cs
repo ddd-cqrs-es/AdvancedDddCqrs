@@ -1,4 +1,5 @@
 ﻿using System;
+
 using AdvancedDddCqrs.Messages;
 
 namespace AdvancedDddCqrs
@@ -11,7 +12,7 @@ namespace AdvancedDddCqrs
         {
             lock (_syncLock)
             {
-                var prevColor = Console.ForegroundColor;
+                ConsoleColor prevColor = Console.ForegroundColor;
 
                 try
                 {

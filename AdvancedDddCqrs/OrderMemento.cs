@@ -2,50 +2,14 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+
 using Newtonsoft.Json.Linq;
 
 namespace AdvancedDddCqrs
 {
     public class OrderMemento : IDynamicWrapper
     {
-        private dynamic _content;
-        private OrderItem[] _items;
-
-        public Guid Id
-        {
-            get { return _content.Id; }
-            set { _content.Id = value; }
-        }
-
-        public bool IsPaid
-        {
-            get { return _content.IsPaid; }
-            set { _content.IsPaid = value; }
-        }
-
-        public OrderItem[] Items
-        {
-            get { return _items; }
-            set { _items = value; }
-        }
-
-        public string ServerId
-        {
-            get { return _content.ServerId; }
-            set { _content.ServerId = value; }
-        }
-
-        public int TableNumber
-        {
-            get { return _content.TableNumber; }
-            set { _content.TableNumber = value; }
-        }
-
-        public bool DodgeyCustomer
-        {
-            get { return _content.DodgeyCustomer; }
-            set { _content.DodgeyCustomer = value; }
-        }
+        private readonly dynamic _content;
 
         public OrderMemento()
         {
@@ -56,6 +20,38 @@ namespace AdvancedDddCqrs
         {
             _content = content;
             Items = BuildItemsArray(_content);
+        }
+
+        public Guid Id
+        {
+            get => _content.Id;
+            set => _content.Id = value;
+        }
+
+        public bool IsPaid
+        {
+            get => _content.IsPaid;
+            set => _content.IsPaid = value;
+        }
+
+        public OrderItem[] Items { get; set; }
+
+        public string ServerId
+        {
+            get => _content.ServerId;
+            set => _content.ServerId = value;
+        }
+
+        public int TableNumber
+        {
+            get => _content.TableNumber;
+            set => _content.TableNumber = value;
+        }
+
+        public bool DodgeyCustomer
+        {
+            get => _content.DodgeyCustomer;
+            set => _content.DodgeyCustomer = value;
         }
 
         public dynamic GetContent()
@@ -70,15 +66,15 @@ namespace AdvancedDddCqrs
 
             foreach (JToken item in contentArray)
             {
-                var ingredientsUsed = item.Value<JArray>("IngredientsUsed")
+                string[] ingredientsUsed = item.Value<JArray>("IngredientsUsed")
                                           .Select(x => x.Value<string>())
                                           .ToArray();
 
                 var orderItem = new OrderItem
                 {
-                    Cost            = item.Value<double>("Cost"),
-                    Name            = item.Value<string>("Name"),
-                    Quantity        = item.Value<uint>("Quantity"),
+                    Cost = item.Value<double>("Cost"),
+                    Name = item.Value<string>("Name"),
+                    Quantity = item.Value<uint>("Quantity"),
                     IngredientsUsed = ingredientsUsed
                 };
 

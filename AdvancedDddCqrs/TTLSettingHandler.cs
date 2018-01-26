@@ -1,4 +1,5 @@
 ﻿using System;
+
 using AdvancedDddCqrs.Messages;
 
 namespace AdvancedDddCqrs
@@ -13,12 +14,16 @@ namespace AdvancedDddCqrs
 
     public class TTLSettingHandler<T> : IHandler<T>
     {
-        private readonly IHandler<T> _handler;
         private readonly int _durationSeconds;
+        private readonly IHandler<T> _handler;
 
         public TTLSettingHandler(IHandler<T> handler, int durationSeconds)
         {
-            if (handler == null) throw new ArgumentNullException("handler");
+            if (handler == null)
+            {
+                throw new ArgumentNullException("handler");
+            }
+
             _handler = handler;
 
             _durationSeconds = durationSeconds;

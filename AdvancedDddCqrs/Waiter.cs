@@ -1,17 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using AdvancedDddCqrs.Messages;
 
 namespace AdvancedDddCqrs
 {
     public class Waiter
     {
-        private readonly string _name;
         private readonly ITopicDispatcher _dispatcher;
+        private readonly string _name;
 
         public Waiter(string name, ITopicDispatcher dispatcher)
         {
-            if (dispatcher == null) throw new ArgumentNullException("dispatcher");
+            if (dispatcher == null)
+            {
+                throw new ArgumentNullException("dispatcher");
+            }
+
             _name = name;
             _dispatcher = dispatcher;
         }
@@ -20,7 +25,7 @@ namespace AdvancedDddCqrs
         {
             var order = new Order(tableNumber, id, _name, dodgeyCustomer);
 
-            foreach (var item in orderItems)
+            foreach (OrderItem item in orderItems)
             {
                 order.AddItem(item);
             }

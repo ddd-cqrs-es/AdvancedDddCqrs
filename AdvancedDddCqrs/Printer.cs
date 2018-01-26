@@ -1,17 +1,17 @@
 using System;
+
 using AdvancedDddCqrs.Messages;
+
 using Newtonsoft.Json;
 
 namespace AdvancedDddCqrs
 {
-    class Printer : IHandler<IMessage>
+    internal class Printer : IHandler<IMessage>
     {
         public bool Handle(IMessage message)
         {
-            Console.WriteLine("{0}: {1}", message,JsonConvert.SerializeObject(message, Formatting.Indented));
+            Console.WriteLine("{0}: {1}", message, JsonConvert.SerializeObject(message, Formatting.Indented));
             return true;
         }
-
-
     }
 }

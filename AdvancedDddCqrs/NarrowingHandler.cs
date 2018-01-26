@@ -1,14 +1,14 @@
 ﻿namespace AdvancedDddCqrs
 {
-    public class NarrowingHandler<TIn, TOut> :IHandler<TIn> 
+    public class NarrowingHandler<TIn, TOut> : IHandler<TIn>
         where TOut : class, TIn
     {
-        public IHandler<TOut> Handler { get; private set; }
-
         public NarrowingHandler(IHandler<TOut> handler)
         {
             Handler = handler;
         }
+
+        public IHandler<TOut> Handler { get; }
 
         public bool Handle(TIn message)
         {
@@ -17,6 +17,7 @@
             {
                 Handler.Handle(casted);
             }
+
             return true;
         }
 

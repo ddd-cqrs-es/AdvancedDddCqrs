@@ -6,9 +6,7 @@ namespace AdvancedDddCqrs.Messages
     {
         private DateTime? _expiry;
 
-        public Order Order { get; private set; }
-
-        protected OrderMessage(Order order, Guid correlationId, Guid? causationId=null )
+        protected OrderMessage(Order order, Guid correlationId, Guid? causationId = null)
         {
             MessageId = Guid.NewGuid();
             CorrelationId = correlationId;
@@ -16,13 +14,11 @@ namespace AdvancedDddCqrs.Messages
             {
                 CausationId = causationId;
             }
-            
+
             Order = order;
         }
 
-        public Guid MessageId { get; private set; }
-        public Guid CorrelationId { get; private set; }
-        public Guid? CausationId { get; private set; }
+        public Order Order { get; }
 
         public bool HasExpired()
         {
@@ -36,5 +32,11 @@ namespace AdvancedDddCqrs.Messages
                 _expiry = DateTime.UtcNow.Add(duration);
             }
         }
+
+        public Guid MessageId { get; }
+
+        public Guid CorrelationId { get; }
+
+        public Guid? CausationId { get; }
     }
 }

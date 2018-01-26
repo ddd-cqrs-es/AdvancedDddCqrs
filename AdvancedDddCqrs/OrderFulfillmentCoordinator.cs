@@ -1,22 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using AdvancedDddCqrs.Messages;
 
 namespace AdvancedDddCqrs
 {
     public class OrderFulfillmentCoordinator : IHandler<OrderTaken>, IHandler<IMessage>, IHandler<Completed>
     {
-        private readonly Dictionary<Guid, IProcessManager> _processes = new Dictionary<Guid, IProcessManager>();
         private readonly ITopicDispatcher _dispatcher;
+        private readonly Dictionary<Guid, IProcessManager> _processes = new Dictionary<Guid, IProcessManager>();
 
         public OrderFulfillmentCoordinator(ITopicDispatcher dispatcher)
         {
             _dispatcher = dispatcher;
         }
 
-        public bool Handle(OrderTaken message)
+        public bool Handle(Completed message)
         {
-            AddNewOrderFulfillment(message);
+            IProcessManager orderFulfillment;
+            if (!_processes.TryGetValue(message.CorrelationId, out orderFulfillment))
+            {
+                _dispatcher.Unsubscribe<IMessage>(message.CorrelationId.ToString(), this);
+                _processes.Remove(message.CorrelationId);
+            }
+
             return true;
         }
 
@@ -31,6 +38,12 @@ namespace AdvancedDddCqrs
             return true;
         }
 
+        public bool Handle(OrderTaken message)
+        {
+            AddNewOrderFulfillment(message);
+            return true;
+        }
+
         private void AddNewOrderFulfillment(OrderTaken message)
         {
             IProcessManager orderFulfillment;
@@ -38,27 +51,16 @@ namespace AdvancedDddCqrs
             {
                 if (message.Order.DodgeyCustomer)
                 {
-                    orderFulfillment = new OrderFulfillmentForDodgeyCustomer(_dispatcher, message);       
+                    orderFulfillment = new OrderFulfillmentForDodgeyCustomer(_dispatcher, message);
                 }
                 else
                 {
                     orderFulfillment = new OrderFulfillment(_dispatcher, message);
                 }
+
                 _processes.Add(message.CorrelationId, orderFulfillment);
                 _dispatcher.Subscribe<IMessage>(message.CorrelationId.ToString(), this);
             }
-        }
-
-        public bool Handle(Completed message)
-        {
-            IProcessManager orderFulfillment;
-            if (!_processes.TryGetValue(message.CorrelationId, out orderFulfillment))
-            {
-                _dispatcher.Unsubscribe<IMessage>(message.CorrelationId.ToString(), this);
-                _processes.Remove(message.CorrelationId);          
-            }
-
-            return true;
         }
     }
 }

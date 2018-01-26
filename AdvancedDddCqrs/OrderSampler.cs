@@ -1,4 +1,5 @@
 using System;
+
 using AdvancedDddCqrs.Messages;
 
 namespace AdvancedDddCqrs
@@ -6,11 +7,15 @@ namespace AdvancedDddCqrs
     public class OrderSampler : IHandler<OrderTaken>
     {
         private readonly ITopicDispatcher _topicDispatcher;
-        private bool _finished = false;
+        private bool _finished;
 
         public OrderSampler(ITopicDispatcher topicDispatcher)
         {
-            if (topicDispatcher == null) throw new ArgumentNullException("topicDispatcher");
+            if (topicDispatcher == null)
+            {
+                throw new ArgumentNullException("topicDispatcher");
+            }
+
             _topicDispatcher = topicDispatcher;
         }
 

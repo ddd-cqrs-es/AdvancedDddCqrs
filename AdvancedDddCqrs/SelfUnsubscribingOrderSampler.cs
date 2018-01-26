@@ -1,4 +1,5 @@
 using System;
+
 using AdvancedDddCqrs.Messages;
 
 namespace AdvancedDddCqrs
@@ -9,7 +10,11 @@ namespace AdvancedDddCqrs
 
         public SelfUnsubscribingOrderSampler(ITopicDispatcher topicDispatcher)
         {
-            if (topicDispatcher == null) throw new ArgumentNullException("topicDispatcher");
+            if (topicDispatcher == null)
+            {
+                throw new ArgumentNullException("topicDispatcher");
+            }
+
             _topicDispatcher = topicDispatcher;
         }
 

@@ -1,6 +1,6 @@
 ﻿using System;
+
 using AdvancedDddCqrs.Messages;
-using Newtonsoft.Json;
 
 namespace AdvancedDddCqrs
 {
@@ -18,7 +18,11 @@ namespace AdvancedDddCqrs
 
         public TTLFilteringHandler(IHandler<T> handler)
         {
-            if (handler == null) throw new ArgumentNullException("handler");
+            if (handler == null)
+            {
+                throw new ArgumentNullException("handler");
+            }
+
             _handler = handler;
         }
 
@@ -29,7 +33,8 @@ namespace AdvancedDddCqrs
             {
                 return _handler.Handle(message);
             }
-            var origColour = Console.ForegroundColor;
+
+            ConsoleColor origColour = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write("-");
             Console.ForegroundColor = origColour;

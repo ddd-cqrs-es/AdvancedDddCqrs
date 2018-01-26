@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using AdvancedDddCqrs.Messages;
 
 namespace AdvancedDddCqrs
@@ -12,22 +13,24 @@ namespace AdvancedDddCqrs
         private readonly ITopicDispatcher _dispatcher;
         private readonly List<EchoWrapper> _messagesToEcho = new List<EchoWrapper>();
 
-        public bool Cancelled { get; set; }
-
         public MessageDelay(ITopicDispatcher dispatcher)
         {
-            if (dispatcher == null) throw new ArgumentNullException("dispatcher");
+            if (dispatcher == null)
+            {
+                throw new ArgumentNullException("dispatcher");
+            }
+
             _dispatcher = dispatcher;
 
             Task.Factory.StartNew(() =>
             {
                 while (!Cancelled)
                 {
-                    var messages = _messagesToEcho.Where(x => x.HasExpired());
+                    IEnumerable<EchoWrapper> messages = _messagesToEcho.Where(x => x.HasExpired());
 
-                    foreach (var message in messages)
+                    foreach (EchoWrapper message in messages)
                     {
-                        _dispatcher.Publish((dynamic)message.Echo.Inner);
+                        _dispatcher.Publish(((dynamic)message.Echo).Inner);
                     }
 
                     Thread.Sleep(1000);
@@ -35,10 +38,12 @@ namespace AdvancedDddCqrs
             });
         }
 
+        public bool Cancelled { get; set; }
+
         public bool Handle(IMessage message)
         {
             var echoWrapper = new EchoWrapper(message);
-            echoWrapper.SetExpiry(message.Delay);
+            echoWrapper.SetExpiry(((dynamic)message).Delay);
             _messagesToEcho.Add(echoWrapper);
 
             return true;
@@ -52,12 +57,12 @@ namespace AdvancedDddCqrs
             throw new NotImplementedException();
         }
 
+        public object Echo { get; private set; }
+
         public bool HasExpired()
         {
             throw new NotImplementedException();
         }
-
-        public object Echo { get; private set; }
 
         public void SetExpiry(TimeSpan delay)
         {
@@ -67,13 +72,18 @@ namespace AdvancedDddCqrs
 
     public class Echo<T> : IMessage
     {
-        public Guid MessageId { get; private set; }
-        public Guid CorrelationId { get; private set; }
-        public Guid? CausationId { get; private set; }
-
         public int RetryCount { get; set; }
+
         public int MaxRetries { get; set; }
+
         public TimeSpan Delay { get; private set; }
+
         public T Inner { get; private set; }
+
+        public Guid MessageId { get; private set; }
+
+        public Guid CorrelationId { get; private set; }
+
+        public Guid? CausationId { get; private set; }
     }
 }

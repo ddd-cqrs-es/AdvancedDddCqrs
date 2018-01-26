@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using AdvancedDddCqrs;
 using AdvancedDddCqrs.Messages;
 
 namespace ConsoleRunner
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             BackPressureTest();
         }
@@ -20,23 +19,23 @@ namespace ConsoleRunner
         {
             var topicDispatcher = new TopicDispatcher();
             var threadBoundaryMonitor = new ThreadBoundaryMonitor();
-            
-            var reporting    = threadBoundaryMonitor.Wrap(new ReportingSystem(topicDispatcher));
+
+            ThreadBoundary<Report> reporting = threadBoundaryMonitor.Wrap(new ReportingSystem(topicDispatcher));
             var cashierInner = new Cashier(topicDispatcher);
-            var cashier      = threadBoundaryMonitor.Wrap(cashierInner);
-            var assManager   = threadBoundaryMonitor.Wrap(new AssistantManager(topicDispatcher));
-            var cooks        = new[]
+            ThreadBoundary<QueueOrderForPayment> cashier = threadBoundaryMonitor.Wrap(cashierInner);
+            ThreadBoundary<PriceFood> assManager = threadBoundaryMonitor.Wrap(new AssistantManager(topicDispatcher));
+            var cooks = new[]
             {
                 threadBoundaryMonitor.Wrap(new Cook(topicDispatcher, 20)),
                 threadBoundaryMonitor.Wrap(new Cook(topicDispatcher, 50)),
                 threadBoundaryMonitor.Wrap(new Cook(topicDispatcher, 90))
             };
-            var cookDispatcher =
+            TTLSettingHandler<CookFood> cookDispatcher =
                 TTLSettingHandler.Wrap(
                     threadBoundaryMonitor.Wrap(
                         RetryDispatcher.Wrap(
                             TTLFilteringHandler.Wrap(
-                                SmartDispatcher.Wrap(cooks, maxQueueLength: 15)))),
+                                SmartDispatcher.Wrap(cooks, 15)))),
                     10);
 
             var waiter = new Waiter("Neil", topicDispatcher);
@@ -52,9 +51,8 @@ namespace ConsoleRunner
             topicDispatcher.Subscribe(threadBoundaryMonitor.Wrap<OrderTaken>(new OrderFulfillmentCoordinator(topicDispatcher)));
             threadBoundaryMonitor.Start();
 
-            RunTest(waiter, cashierInner, orderCount: 5000);
+            RunTest(waiter, cashierInner, 5000);
         }
-
 
         private static void RunTest(Waiter waiter, Cashier cashier, int orderCount)
         {
@@ -70,8 +68,8 @@ namespace ConsoleRunner
                 () =>
                 {
                     bool isDodegy = false;
-                       
-                    foreach (var orderId in orderIds)
+
+                    foreach (Guid orderId in orderIds)
                     {
                         waiter.TakeOrder(
                             12,
@@ -85,7 +83,7 @@ namespace ConsoleRunner
                             },
                             orderId,
                             isDodegy
-                            );
+                        );
                         isDodegy = !isDodegy;
                         ordersToBePaid.Add(orderId);
                     }
@@ -97,7 +95,7 @@ namespace ConsoleRunner
             Task.Factory.StartNew(
                 () =>
                 {
-                    foreach (var orderId in ordersToBePaid.GetConsumingEnumerable())
+                    foreach (Guid orderId in ordersToBePaid.GetConsumingEnumerable())
                     {
                         if (false == cashier.TryPay(orderId))
                         {

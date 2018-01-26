@@ -11,30 +11,38 @@ namespace AdvancedDddCqrs
 
         public ThreadBoundary(IHandler<T> handler)
         {
-            if (handler == null) throw new ArgumentNullException("handler");
+            if (handler == null)
+            {
+                throw new ArgumentNullException("handler");
+            }
+
             _handler = handler;
 
             Task.Factory.StartNew(() =>
             {
-                foreach (var order in _queue.GetConsumingEnumerable())
+                foreach (T order in _queue.GetConsumingEnumerable())
                 {
                     handler.Handle(order);
                 }
             });
         }
 
-        public int QueueLength { get { return _queue.Count; } }
+        public int QueueLength => _queue.Count;
+
+        public void Dispose()
+        {
+            if (_queue != null)
+            {
+                _queue.CompleteAdding();
+                _queue = null;
+            }
+        }
 
         public bool Handle(T message)
         {
             _queue.Add(message);
 
             return true;
-        }
-
-        public override string ToString()
-        {
-            return string.Format("ThreadBoundary({0})", _handler);
         }
 
         public string GetName()
@@ -47,19 +55,16 @@ namespace AdvancedDddCqrs
             return QueueLength;
         }
 
-        public void Dispose()
+        public override string ToString()
         {
-            if (_queue != null)
-            {
-                _queue.CompleteAdding();
-                _queue = null;
-            }
+            return string.Format("ThreadBoundary({0})", _handler);
         }
     }
 
     public interface IReportingThreadBoundary
     {
         string GetName();
+
         int GetQueueLength();
     }
 }

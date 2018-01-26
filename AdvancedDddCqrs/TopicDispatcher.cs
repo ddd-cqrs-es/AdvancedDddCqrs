@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using AdvancedDddCqrs.Messages;
 
 namespace AdvancedDddCqrs
@@ -10,9 +11,9 @@ namespace AdvancedDddCqrs
 
         public void Publish<T>(T message) where T : class, IMessage
         {
-            var topics = GetDefaultTopics(message);
+            IEnumerable<string> topics = GetDefaultTopics(message);
 
-            foreach (var topic in topics)
+            foreach (string topic in topics)
             {
                 Multiplexer<IMessage> handlers;
                 if (_subscriptions.TryGetValue(topic, out handlers))
@@ -35,7 +36,7 @@ namespace AdvancedDddCqrs
             Multiplexer<IMessage> existingHandler;
             if (_subscriptions.TryGetValue(topic, out existingHandler))
             {
-                var clone = existingHandler.Clone();
+                Multiplexer<IMessage> clone = existingHandler.Clone();
                 clone.AddHandler(imessageshandler);
                 _subscriptions[topic] = clone;
             }
@@ -51,8 +52,8 @@ namespace AdvancedDddCqrs
             Multiplexer<IMessage> multiplexer;
             if (_subscriptions.TryGetValue(topic, out multiplexer))
             {
-                var clone = multiplexer.Clone();
-                clone.RemoveHandler<T>(handler);
+                Multiplexer<IMessage> clone = multiplexer.Clone();
+                clone.RemoveHandler(handler);
                 _subscriptions[topic] = clone;
             }
         }

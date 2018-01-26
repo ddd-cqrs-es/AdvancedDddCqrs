@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+
 using AdvancedDddCqrs.Messages;
 
 namespace AdvancedDddCqrs
@@ -14,6 +14,17 @@ namespace AdvancedDddCqrs
             _handlers = handlers.ToList();
         }
 
+        public bool Handle(T message)
+        {
+            foreach (IHandler<T> handler in _handlers)
+            {
+                ////Console.WriteLine("Multiplexing {0} to {1}", message, handler);
+                handler.Handle(message);
+            }
+
+            return true;
+        }
+
         public void AddHandler(IHandler<T> newHandler)
         {
             _handlers.Add(newHandler);
@@ -25,20 +36,9 @@ namespace AdvancedDddCqrs
             return clone;
         }
 
-        public bool Handle(T message)
-        {
-            foreach (var handler in _handlers)
-            {
-                ////Console.WriteLine("Multiplexing {0} to {1}", message, handler);
-                handler.Handle(message);
-            }
-
-            return true;
-        }
-
         public void RemoveHandler<TMsg>(IHandler<TMsg> handlerToRemove) where TMsg : class, IMessage
         {
-            var narrowingHandler = _handlers.OfType<NarrowingHandler<IMessage, TMsg>>()
+            NarrowingHandler<IMessage, TMsg> narrowingHandler = _handlers.OfType<NarrowingHandler<IMessage, TMsg>>()
                                             .SingleOrDefault(x => x.Handler == handlerToRemove);
 
             if (narrowingHandler != null)
@@ -49,7 +49,7 @@ namespace AdvancedDddCqrs
 
         public override string ToString()
         {
-            var firstHandler = _handlers.FirstOrDefault();
+            IHandler<T> firstHandler = _handlers.FirstOrDefault();
             return string.Format(
                 "Multiplexer({0})",
                 firstHandler != null

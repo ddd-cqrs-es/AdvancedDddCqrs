@@ -1,4 +1,5 @@
 ﻿using System;
+
 using Newtonsoft.Json;
 
 namespace AdvancedDddCqrs
@@ -7,17 +8,17 @@ namespace AdvancedDddCqrs
     {
         public TType Deserialise<TType, TMementoType>(string json)
         {
-            var dynamicObject = JsonConvert.DeserializeObject(json);
-            var memento = (TMementoType)Activator.CreateInstance(typeof(TMementoType), new[] { dynamicObject });
+            object dynamicObject = JsonConvert.DeserializeObject(json);
+            var memento = (TMementoType)Activator.CreateInstance(typeof(TMementoType), dynamicObject);
             var result = (TType)Activator.CreateInstance(typeof(TType), new[] { memento });
             return result;
         }
 
-        public string Serialise<TType, TMementoType>(TType item) 
+        public string Serialise<TType, TMementoType>(TType item)
             where TType : ISupportMemoisation<TMementoType>
         {
-            var memento = item.GetMemento();
-            var json = JsonConvert.SerializeObject(memento, Formatting.Indented);
+            TMementoType memento = item.GetMemento();
+            string json = JsonConvert.SerializeObject(memento, Formatting.Indented);
             return json;
         }
     }
@@ -27,14 +28,14 @@ namespace AdvancedDddCqrs
         public TType Deserialise<TType>(string json)
             where TType : IDynamicWrapper
         {
-            var dynamicObject = JsonConvert.DeserializeObject(json);
-            var result = (TType)Activator.CreateInstance(typeof(TType), new[] { dynamicObject });
+            object dynamicObject = JsonConvert.DeserializeObject(json);
+            var result = (TType)Activator.CreateInstance(typeof(TType), dynamicObject);
             return result;
         }
 
-        public string Serialise<TType>(TType item) 
+        public string Serialise<TType>(TType item)
         {
-            var json = JsonConvert.SerializeObject(item, Formatting.Indented);
+            string json = JsonConvert.SerializeObject(item, Formatting.Indented);
             return json;
         }
     }

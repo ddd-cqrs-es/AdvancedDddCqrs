@@ -9,7 +9,11 @@ namespace AdvancedDddCqrs
 
         public TaskAsyncHandler(IOrderHandler handler)
         {
-            if (handler == null) throw new ArgumentNullException("handler");
+            if (handler == null)
+            {
+                throw new ArgumentNullException("handler");
+            }
+
             _handler = handler;
         }
 

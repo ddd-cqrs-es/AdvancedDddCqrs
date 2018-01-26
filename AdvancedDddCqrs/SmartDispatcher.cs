@@ -19,7 +19,10 @@ namespace AdvancedDddCqrs
 
         public SmartDispatcher(IEnumerable<ThreadBoundary<T>> handlers, int maxQueueLength)
         {
-            if (handlers == null) throw new ArgumentNullException("handlers");
+            if (handlers == null)
+            {
+                throw new ArgumentNullException("handlers");
+            }
 
             _handlers = handlers;
             _maxQueueLength = maxQueueLength;
@@ -27,7 +30,7 @@ namespace AdvancedDddCqrs
 
         public bool Handle(T message)
         {
-            var next = GetNextHandler();
+            ThreadBoundary<T> next = GetNextHandler();
 
             if (next == null)
             {
@@ -41,7 +44,7 @@ namespace AdvancedDddCqrs
 
         public override string ToString()
         {
-            var firstHandler = _handlers.FirstOrDefault();
+            ThreadBoundary<T> firstHandler = _handlers.FirstOrDefault();
             return string.Format(
                 "SmartDispatcher({0})",
                 firstHandler != null
